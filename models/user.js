@@ -1,10 +1,22 @@
 import { Schema, model } from "mongoose";
+import bcrypt from "bcryptjs";
 
 const userSchema = new Schema(
   {
     username: { type: String, required: true, unique: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true },
-    passwordHash: { type: String }, // only if using email/password
+    email: { 
+      type: String, 
+      required: true, 
+      unique: true, 
+      lowercase: true,
+      validate: {
+        validator: function(value){
+          return value.includes('@')
+        },
+        message: (props) => `${props.value} is not a valid email`
+      }
+     },
+    password: { type: String }, // only if using email/password
     authProvider: {
       type: String,
       enum: ["google", "github", "email"],
@@ -33,4 +45,12 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-export const User = model("User", userSchema);
+userSchema.pre('save', async function(next){
+  if(!this.isModified('password')) return next();
+
+  this.password = await bcrypt.hash(this.password, 10);
+})
+
+const User = model("User", userSchema);
+
+export default User;
