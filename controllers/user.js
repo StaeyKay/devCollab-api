@@ -47,8 +47,9 @@ export const login = async (req, res, next) => {
       const error = new Error("Incorrect credentials");
       error.statusCode = 401;
       return next(error);
+    }
 
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
         expiresIn: "1d",
       });
 
@@ -64,6 +65,7 @@ export const login = async (req, res, next) => {
       token,
       user,
     });
-    }
-  } catch (error) {}
+  } catch (error) {
+    next(error)
+  }
 };
