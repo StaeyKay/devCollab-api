@@ -5,6 +5,7 @@ import connectDb from './config/db.js';
 import UserRouter from './routes/user.js';
 import ProjectRouter from './routes/project.js';
 import cookieParser from 'cookie-parser';
+import { errorHandler } from './middlewares/errorHandler.js';
 
 const app = express();
 
@@ -21,7 +22,10 @@ app.use(cors({
 
 
 app.use('/api/auth', UserRouter);
-app.use('/api/project', ProjectRouter )
+app.use('/api/project', ProjectRouter );
+
+
+app.use(errorHandler)
 
 app.listen(PORT, () => {
     connectDb();
