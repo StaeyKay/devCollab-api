@@ -21,6 +21,7 @@ const userSchema = new Schema(
       type: String,
       enum: ["google", "github", "email"],
       required: true,
+      default: "email"
     },
     githubProfileLink: { type: String },
     bio: { type: String, maxlength: 500 },
