@@ -69,3 +69,19 @@ export const login = async (req, res, next) => {
     next(error)
   }
 };
+
+export const getUserById = async (req, res, next) => {
+  const {userId} = req.params
+  const user = await User.findById(userId)
+
+  if(!userId) {
+    return res.status(404).json({
+      message: 'User not found'
+    });
+  };
+
+  res.status(200).json({
+    success: true,
+    user
+  });
+};
