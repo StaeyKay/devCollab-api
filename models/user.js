@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 const userSchema = new Schema(
   {
@@ -42,6 +43,8 @@ const userSchema = new Schema(
         awardedAt: { type: Date, default: Date.now },
       },
     ],
+    resetPasswordToken: {type: String},
+    resetPasswordTokenExpiry: {type: String}
   },
   { timestamps: true }
 );
@@ -58,6 +61,15 @@ userSchema.methods.comparePassword = function (
 ) {
   return bcrypt.compare(passwordFromUser, passwordFromDb);
 };
+
+userSchema.methods.generatePasswordResetToken = function() {
+  const resetToken = crypto.randomBytes(16).toString('hex');
+  this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+  this.resetPasswordTokenExpiry = Date.now() + 7 * 6 * 1000;
+
+  return resetToken;
+}
 
 const User = model("User", userSchema);
 

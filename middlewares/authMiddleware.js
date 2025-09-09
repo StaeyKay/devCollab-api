@@ -14,7 +14,14 @@ export const protect = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = await User.findById(decoded.id).select("-password");
+    if(!decoded) {
+      const error = new Error('Invalid token');
+      error.statusCode = 401;
+      return next(error);
+    }
+
+    const user = await User.findById(decoded.id).select("-password");
+    req.user = user
 
     if (!req.user) {
       const error = new Error()
