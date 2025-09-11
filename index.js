@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(cookieParser())
 
 app.use('/api/auth', UserRouter);
-app.use('/api/project', ProjectRouter )
+app.use('/api/project', ProjectRouter );
 
 app.listen(PORT, () => {
     connectDb();

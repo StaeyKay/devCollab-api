@@ -1,10 +1,13 @@
-import { Project } from "../models/project.js";
+import  Project  from "../models/project.js";
+import User from '../models/user.js';
+
+
 
 export const getAllProjects = async (req, res, next) => {
   try {
     const projects = await Project.find()
-      .populate("ownerId", "username email")
-      .populate("contributors.userId", "username email");
+      .populate("ownerId")
+      .populate("contributors.userId");
     res.json(projects);
   } catch (error) {
     next(error);
@@ -14,8 +17,8 @@ export const getAllProjects = async (req, res, next) => {
 export const getProjectById = async (req, res, next) => {
   try {
     const project = await Project.findById(req.params.id)
-      .populate("ownerId", "username email")
-      .populate("contributors.userId", "username email");
+      .populate("ownerId")
+      .populate("contributors.userId");
 
     if (!project) {
       const error = new Error("Project not found");
@@ -42,9 +45,15 @@ export const addProject = async (req, res, next) => {
     const project = new Project({
       ...req.body,
       ownerId: req.user._id,
+    
     });
 
+    project.contributors.push({userId: req.user._id})
     await project.save();
+
+
+    await User.findByIdAndUpdate(req.user._id, {$push: {projects: project._id}})
+
 
     res.status(201).json(project);
   } catch (error) {
@@ -72,11 +81,13 @@ export const updateProject = async (req, res, next) => {
 export const deleteProject = async (req, res, next) => {
   try {
     const project = await Project.findByIdAndDelete(req.params.id);
+    
     if (!project) {
       const error = new Error("Project not found");
       error.statusCode = 404;
       return next(error);
     }
+    // Todo handle deletion of users with project referenced in their data.
     res.json({ message: "Project deleted successfully" });
   } catch (err) {
     next(err);
@@ -86,9 +97,15 @@ export const deleteProject = async (req, res, next) => {
 export const addContributor = async (req, res, next) => {
     const {userId, userRole} = req.body;
 
-    if(!userId || !userRole){
+    if(!userId){
         
-    const error = new Error('all fields required');
+    const error = new Error('userId is required');
+    error.statusCode = 404;
+    return next(error)
+  } 
+    if(!userRole){
+        
+    const error = new Error('userRole is required');
     error.statusCode = 404;
     return next(error)
   } 
@@ -106,6 +123,8 @@ export const addContributor = async (req, res, next) => {
       role: userRole,
     });
     await project.save();
+
+    await User.findByIdAndUpdate(userId, {$push : {projects: project._id}})
 
     res.json(project);
   } catch (err) {

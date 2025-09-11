@@ -26,7 +26,8 @@ const userSchema = new Schema(
     bio: { type: String, maxlength: 500 },
     skills: [{ type: String }],
     techStack: [{ type: String }],
-    // projects: [{type: String}],
+    projects: [{type: Schema.Types.ObjectId
+    }],
     status: {
       type: String,
       enum: ["open_to_collaborate", "unavailable"],
