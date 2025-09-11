@@ -23,9 +23,8 @@ app.use(cors({
 
 app.use('/api/auth', UserRouter);
 app.use('/api/project', ProjectRouter );
-
-
 app.use(errorHandler)
+
 
 app.listen(PORT, () => {
     connectDb();
