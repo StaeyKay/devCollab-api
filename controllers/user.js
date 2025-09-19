@@ -192,3 +192,45 @@ export const getUserById = async (req, res, next) => {
     user,
   });
 };
+
+
+export const loadUser = async (req, res, next) => {
+    try {
+        const token = req.cookies.token;
+
+        
+        if(!token){
+            const error = new Error('You are not logged in');
+            error.statusCode = 401;
+            return next(error)
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        if(!decoded){
+            const error = new Error('token invalid');
+            error.statusCode = 401;
+            return next(error)
+        }
+        // console.log('user logged in',req.loggedInUser)
+
+
+        const user = await User.findById(decoded.id).select('-password'); //{_id: '36uwgiu', firstName: }
+
+        if(!user) {
+            const error = new Error('The user with this token does not exist');
+            error.statusCode = 401;
+            return next(error)
+        }
+
+        res.status(200).json({
+            success: true,
+            statusCode: 200,
+            user
+        })
+        
+
+    } catch (error) {
+        next(error)
+    }
+}
