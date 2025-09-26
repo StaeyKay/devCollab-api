@@ -18,6 +18,7 @@ const userSchema = new Schema(
       }
      },
     password: { type: String }, // only if using email/password
+    profilePic: String,
     authProvider: {
       type: String,
       enum: ["google", "github", "email"],
