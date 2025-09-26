@@ -234,3 +234,21 @@ export const loadUser = async (req, res, next) => {
         next(error)
     }
 }
+
+export const profileUpload = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    user.profilePic = `uploads/${req.file.filename}`;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: "file uploaded successfully"
+    })
+  } catch (error) {
+    next(error)
+  }
+}
