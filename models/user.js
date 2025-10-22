@@ -26,11 +26,14 @@ const userSchema = new Schema(
       default: "email"
     },
     githubProfileLink: { type: String },
+    portfolioLink: { type: String },
+    linkedIn: { type: String },
     bio: { type: String, maxlength: 500 },
     skills: [{ type: String }],
     techStack: [{ type: String }],
     projects: [{type: Schema.Types.ObjectId,
     ref: 'Project'}, ],
+    country: String,
     status: {
       type: String,
       enum: ["open_to_collaborate", "unavailable"],
