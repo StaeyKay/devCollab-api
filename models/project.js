@@ -6,6 +6,7 @@ const projectSchema = new Schema({
     description: { type: String, required: true },
     techStack: [{ type: String }],
     difficultyLevel: { type: String, enum: ["beginner", "intermediate", "advanced", "expert"] },
+    role: {type: String, enum: ["Owner", "Contributor"], default: "Owner"},
     rolesNeeded: [{ type: String }], // e.g. ["frontend", "backend"]
     status: {
       type: String,

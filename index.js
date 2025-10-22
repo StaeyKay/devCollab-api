@@ -1,12 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import connectDb from './config/db.js';
-
 import UserRouter from './routes/user.js';
 import ProjectRouter from './routes/project.js';
 import JoinRequestRouter from './routes/joinRequest.js';
 import cookieParser from 'cookie-parser';
 import { errorHandler } from './middlewares/errorHandler.js';
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 
@@ -20,6 +21,14 @@ app.use(cors({
     origin: 'http://localhost:5173',
     credentials: true
 }));
+
+
+// For __dirname support in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Serve uploaded images from the "uploads" folder
+app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
 
 
 app.use('/api/auth', UserRouter);
