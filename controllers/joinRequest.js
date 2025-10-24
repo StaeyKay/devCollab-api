@@ -4,7 +4,7 @@ import Project from "../models/project.js";
 // Create a new join request
 export const createJoinRequest = async (req, res, next) => {
     try {
-        const { projectId, requestedRole, message } = req.body;
+        const { projectId, requestedRole, message, userId } = req.body;
 
         if (!projectId) {
             const error = new Error("Project ID is required");
@@ -53,6 +53,10 @@ export const createJoinRequest = async (req, res, next) => {
             message
         });
 
+        // Add join request to project
+        project.joinRequests.push(joinRequest._id);
+        await project.save();
+
         await joinRequest.populate('user', 'username email profilePic');
         await joinRequest.populate('projectId', 'name description');
 
@@ -72,8 +76,15 @@ export const getProjectJoinRequests = async (req, res, next) => {
     try {
         const { projectId } = req.params;
         
-        // Verify if user has permission to view requests (should be project owner)
-        const project = await Project.findById(projectId);
+        const project = await Project.findById(projectId)
+            .populate({
+                path: 'joinRequests',
+                populate: [
+                    { path: 'user', select: 'username email profilePic' },
+                    { path: 'projectId', select: 'name description' }
+                ]
+            });
+
         if (!project) {
             const error = new Error("Project not found");
             error.statusCode = 404;
@@ -81,23 +92,17 @@ export const getProjectJoinRequests = async (req, res, next) => {
         }
 
         // Check if user is project owner
-        if (project.owner.toString() !== req.user._id.toString()) {
+        if (project.ownerId.toString() !== req.user._id.toString()) {
             const error = new Error("Not authorized to view join requests");
             error.statusCode = 403;
             return next(error);
         }
 
-        const requests = await JoinRequest.find({ projectId })
-            .populate('user', 'username email profilePic')
-            .populate('projectId', 'name description')
-            .sort('-createdAt');
-
         res.status(200).json({
             success: true,
-            count: requests.length,
-            requests
+            count: project.joinRequests.length,
+            requests: project.joinRequests
         });
-
     } catch (error) {
         next(error);
     }
@@ -142,7 +147,7 @@ export const updateJoinRequestStatus = async (req, res, next) => {
 
         // Verify if user has permission (should be project owner)
         const project = await Project.findById(joinRequest.projectId);
-        if (project.owner.toString() !== req.user._id.toString()) {
+        if (project.ownerId.toString() !== req.user._id.toString()) {
             const error = new Error("Not authorized to update join request");
             error.statusCode = 403;
             return next(error);
@@ -154,10 +159,15 @@ export const updateJoinRequestStatus = async (req, res, next) => {
 
         // If accepted, you might want to add the user to project members
         if (status === "accepted") {
-            project.members.push({
-                user: joinRequest.user,
+            project.contributors.push({
+                userId: joinRequest.user,
                 role: joinRequest.requestedRole
             });
+            
+            // Remove from joinRequests array since it's no longer pending
+            project.joinRequests = project.joinRequests.filter(
+                request => request._id.toString() !== requestId.toString()
+            );
             await project.save();
         }
 
@@ -199,6 +209,13 @@ export const withdrawJoinRequest = async (req, res, next) => {
 
         joinRequest.status = "withdrawn";
         await joinRequest.save();
+
+        // Remove join request from project
+        const project = await Project.findById(joinRequest.projectId);
+        project.joinRequests = project.joinRequests.filter(
+            request => request.toString() !== requestId
+        );
+        await project.save();
 
         res.status(200).json({
             success: true,

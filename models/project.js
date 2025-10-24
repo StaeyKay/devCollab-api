@@ -7,7 +7,8 @@ const projectSchema = new Schema({
     techStack: [{ type: String }],
     difficultyLevel: { type: String, enum: ["beginner", "intermediate", "advanced", "expert"] },
     role: {type: String, enum: ["Owner", "Contributor"], default: "Owner"},
-    rolesNeeded: [{ type: String }], // e.g. ["frontend", "backend"]
+    rolesNeeded: [{ type: String }], // e.g ][Frontend and backend]
+    tags: [{type: String}],
     status: {
       type: String,
       enum: ["idea", "in_progress", "completed"],
@@ -21,10 +22,10 @@ const projectSchema = new Schema({
         joinedAt: { type: Date, default: Date.now },
       },
     ],
+    joinRequests: [{ type: Types.ObjectId, ref: "JoinRequest" }]  // Add this line
   },
   { timestamps: true }
 );
 
-
- const Project = model("Project", projectSchema);
- export default Project;
+const Project = model("Project", projectSchema);
+export default Project;
